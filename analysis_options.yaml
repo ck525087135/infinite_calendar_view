@@ -1,0 +1,15 @@
+include: package:lints/core.yaml
+
+analyzer:
+  exclude:
+    - example/build/**
+    - example/android/**
+    - example/ios/**
+    - example/web/**
+    - idea/**
+    - .dart_tool/**
+    - example/.dart_tool/**
+
+linter:
+  rules:
+    lines_longer_than_80_chars: false
