@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:sticky_infinite_list/models/alignments.dart';
 import 'package:sticky_infinite_list/widget.dart';
+import 'dart:math' as math;
 
 import 'controller/events_controller.dart';
 import 'events/event.dart';
@@ -11,6 +12,7 @@ import 'widgets/planner/day_widget.dart';
 import 'widgets/planner/horizontal_days_indicator_widget.dart';
 import 'widgets/planner/horizontal_full_day_events_widget.dart';
 import 'widgets/planner/vertical_time_indicator_widget.dart';
+import 'widgets/planner/overlay_full_day_events_layer.dart';
 
 class EventsPlanner extends StatefulWidget {
   const EventsPlanner({
@@ -228,12 +230,13 @@ class EventsPlannerState extends State<EventsPlanner> {
     var currentHourIndicatorColor =
         widget.currentHourIndicatorParam.currentHourIndicatorColor ??
             getDefaultHourIndicatorColor(context);
+    final timesIndicatorsWidth = widget.timesIndicatorsParam.timesIndicatorsWidth;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         var width = constraints.maxWidth;
-        var leftWidget = widget.timesIndicatorsParam.timesIndicatorsWidth;
-        dayWidth = (width - leftWidget) / widget.daysShowed;
+        dayWidth = (width - timesIndicatorsWidth) / widget.daysShowed;
+        if (dayWidth <= 0) dayWidth = 50; // Fallback
 
         return Column(
           children: [
@@ -242,11 +245,46 @@ class EventsPlannerState extends State<EventsPlanner> {
                 widget.columnsParam.columns > 1)
               getHorizontalDaysIndicatorWidget(),
 
-            // full day events
+            // Stack for Full Day Events Bar background and Overlay
             if (widget.fullDayParam.fullDayEventsBarVisibility)
-              getHorizontalFullDayEventsWidget(
-                daySeparationWidthPadding,
-                todayColor,
+              SizedBox(
+                height: widget.fullDayParam.fullDayEventsBarHeight,
+                child: Stack(
+                  children: [
+                    // 1. Background Container (spans the full width)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: widget.fullDayParam.fullDayEventsBarDecoration,
+                         // Optional: Add a background color if decoration doesn't include it
+                         // color: widget.fullDayParam.fullDayBackgroundColor ?? Colors.transparent,
+                      ),
+                    ),
+                    // 2. Left "All Day" Label (positioned absolutely)
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: timesIndicatorsWidth,
+                      child: getFullDayEventsLeftLabel(), // Extracted Label Widget
+                    ),
+                    // 3. Overlay Layer for rendering continuous events
+                    Positioned.fill(
+                      left: timesIndicatorsWidth, // Start after the label
+                      child: OverlayFullDayEventsLayer(
+                        // Pass necessary parameters
+                        controller: _controller,
+                        dayHorizontalController: mainHorizontalController, // Use main controller
+                        initialDate: initialDate,
+                        dayWidth: dayWidth,
+                        daySeparationWidthPadding: daySeparationWidthPadding,
+                        fullDayParam: widget.fullDayParam,
+                        maxPreviousDays: widget.maxPreviousDays, // Still needed for range calculation
+                        maxNextDays: widget.maxNextDays,     // Still needed for range calculation
+                        barHeight: widget.fullDayParam.fullDayEventsBarHeight,
+                      ),
+                    ),
+                  ],
+                ),
               ),
 
             // days content
@@ -256,6 +294,7 @@ class EventsPlannerState extends State<EventsPlanner> {
                 currentHourIndicatorColor,
                 todayColor,
                 daySeparationWidthPadding,
+                timesIndicatorsWidth, // Pass down
               ),
             ),
           ],
@@ -281,6 +320,7 @@ class EventsPlannerState extends State<EventsPlanner> {
     Color currentHourIndicatorColor,
     Color todayColor,
     double daySeparationWidthPadding,
+    double timesIndicatorsWidth, // Accept param
   ) {
     var zoom = widget.pinchToZoomParam;
     var isZoom = zoom.pinchToZoom;
@@ -309,9 +349,12 @@ class EventsPlannerState extends State<EventsPlanner> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // left Timeline
-                          getVerticalTimeIndicatorWidget(
-                            currentHourIndicatorColor,
+                          // left Timeline (apply width)
+                          SizedBox(
+                            width: timesIndicatorsWidth,
+                            child: getVerticalTimeIndicatorWidget(
+                              currentHourIndicatorColor,
+                            ),
                           ),
 
                           // day planning infinite list
@@ -394,25 +437,6 @@ class EventsPlannerState extends State<EventsPlanner> {
     );
   }
 
-  HorizontalFullDayEventsWidget getHorizontalFullDayEventsWidget(
-    double daySeparationWidthPadding,
-    Color todayColor,
-  ) {
-    return HorizontalFullDayEventsWidget(
-      controller: _controller,
-      fullDayParam: widget.fullDayParam,
-      columnsParam: widget.columnsParam,
-      daySeparationWidthPadding: daySeparationWidthPadding,
-      dayHorizontalController: headersHorizontalController,
-      maxPreviousDays: widget.maxPreviousDays,
-      maxNextDays: widget.maxNextDays,
-      initialDate: initialDate,
-      dayWidth: dayWidth,
-      todayColor: todayColor,
-      timesIndicatorsWidth: widget.timesIndicatorsParam.timesIndicatorsWidth,
-    );
-  }
-
   HorizontalDaysIndicatorWidget getHorizontalDaysIndicatorWidget() {
     return HorizontalDaysIndicatorWidget(
       daysHeaderParam: widget.daysHeaderParam,
@@ -424,6 +448,26 @@ class EventsPlannerState extends State<EventsPlanner> {
       dayWidth: dayWidth,
       timesIndicatorsWidth: widget.timesIndicatorsParam.timesIndicatorsWidth,
     );
+  }
+
+  Widget getFullDayEventsLeftLabel() {
+    return Container(
+       // Optional: Add decoration if needed, distinct from the main bar decoration
+       // decoration: BoxDecoration(border: Border(right: BorderSide(color: Colors.grey.shade300))), // Example separator
+       alignment: Alignment.center,
+       child: widget.fullDayParam.fullDayEventsBarLeftWidget ??
+           Center(
+             child: Text(
+               widget.fullDayParam.fullDayEventsBarLeftText,
+               style: TextStyle(
+                   color: Theme.of(context).colorScheme.outline,
+                   fontSize: 12),
+               textAlign: TextAlign.center,
+               maxLines: 2,
+               overflow: TextOverflow.ellipsis,
+             ),
+           ),
+     );
   }
 
   void _onScaleStart(ScaleStartDetails details) {
@@ -509,6 +553,7 @@ class FullDayParam {
     this.fullDayEventsBuilder,
     this.fullDayEventBuilder,
     this.fullDayBackgroundColor,
+    this.onEventTap,
   });
 
   static const defaultFullDayEventsBarLeftText = 'All day';
@@ -529,7 +574,7 @@ class FullDayParam {
   final Decoration? fullDayEventsBarDecoration;
 
   /// full day events builder
-  final Widget Function(List<FullDayEvent> events, double width)?
+  final Widget Function(List<FullDayEvent> events, double width, bool hasOverflow)?
       fullDayEventsBuilder;
 
   /// full day event builder
@@ -537,6 +582,9 @@ class FullDayParam {
 
   /// color of background top bar
   final Color? fullDayBackgroundColor;
+
+  /// Callback when a full day event is tapped
+  final void Function(FullDayEvent event)? onEventTap;
 }
 
 class PinchToZoomParameters {

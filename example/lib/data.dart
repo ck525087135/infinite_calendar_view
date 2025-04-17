@@ -125,9 +125,26 @@ List<Event> generateRandomEvents(int count) {
 
 List<FullDayEvent> fullDayEvents = [
   FullDayEvent(
-    title: "vacation",
-    color: Colors.grey,
-    textColor: Colors.white,
+    title: "Vacation",
+    color: Colors.amber,
+    textColor: Colors.black,
+    startTime: DateTime.now().add(const Duration(days: -1)), // Yesterday
+    endTime:
+        DateTime.now().add(const Duration(days: 2)), // Ends day after tomorrow
+  ),
+  FullDayEvent(
+    title: "Short Trip",
+    color: Colors.lightGreen,
+    textColor: Colors.black,
+    startTime: DateTime.now().add(const Duration(days: 4)),
+    endTime: DateTime.now().add(const Duration(days: 5)),
+  ),
+  FullDayEvent(
+    title: "Today Only",
+    color: Colors.lightBlue,
+    textColor: Colors.black,
+    startTime: DateTime.now(),
+    endTime: DateTime.now(),
   ),
 ];
 

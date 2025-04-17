@@ -24,7 +24,7 @@ class _MyAppState extends State<MyApp> {
   EventsController controller = EventsController()
     ..updateCalendarData((calendarData) {
       calendarData.addEvents(events);
-      calendarData.addFullDayEvents(DateTime.now(), fullDayEvents);
+      calendarData.addAllFullDayEvents(fullDayEvents);
     });
   var calendarMode = CalendarView.day3;
   var darkMode = false;

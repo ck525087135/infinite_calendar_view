@@ -59,6 +59,8 @@ class FullDayEvent {
     this.eventType = Event.defaultType,
     this.color = Colors.blue,
     this.textColor = Colors.white,
+    required this.startTime,
+    required this.endTime,
   });
 
   final int columnIndex;
@@ -68,4 +70,25 @@ class FullDayEvent {
   final Color textColor;
   final Object? data;
   final Object eventType;
+  final DateTime startTime;
+  final DateTime endTime;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is FullDayEvent &&
+          runtimeType == other.runtimeType &&
+          columnIndex == other.columnIndex &&
+          title == other.title &&
+          description == other.description &&
+          color == other.color &&
+          textColor == other.textColor &&
+          data == other.data &&
+          eventType == other.eventType &&
+          startTime == other.startTime &&
+          endTime == other.endTime;
+
+  @override
+  int get hashCode => Object.hash(columnIndex, title, description, color,
+      textColor, data, eventType, startTime, endTime);
 }

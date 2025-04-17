@@ -101,6 +101,48 @@ class CalendarData {
     fullDayEvents[dayDate] = [...fullDayEvents[dayDate]!, ...events];
   }
 
+  /// (DEPRECATED - use addAllFullDayEvents for multi-day support)
+  /// Adds full day events only to the specified single day.
+  void addFullDayEventsToSingleDay(DateTime day, List<FullDayEvent> events) {
+    var dayDate = day.withoutTime;
+    if (!fullDayEvents.containsKey(dayDate)) {
+      fullDayEvents[dayDate] = [];
+    }
+    // Avoid duplicates if called multiple times
+    for (var event in events) {
+      if (!fullDayEvents[dayDate]!.contains(event)) {
+         fullDayEvents[dayDate]!.add(event);
+      }
+    }
+  }
+
+  /// Adds a list of FullDayEvents, ensuring multi-day events
+  /// are associated with each day they span in the internal map.
+  void addAllFullDayEvents(List<FullDayEvent> events) {
+    for (var event in events) {
+      // Calculate the range of days the event spans (inclusive)
+      final startDate = event.startTime.withoutTime;
+      final endDate = event.endTime.withoutTime;
+      // Ensure end date is not before start date
+      if (endDate.isBefore(startDate)) continue;
+
+      int daysDifference = endDate.difference(startDate).inDays;
+
+      // Add the event to the map for each day in its range
+      for (int i = 0; i <= daysDifference; i++) {
+        var day = startDate.add(Duration(days: i));
+        var dayDate = day.withoutTime;
+        if (!fullDayEvents.containsKey(dayDate)) {
+          fullDayEvents[dayDate] = [];
+        }
+        // Add event only if it's not already in the list for that day
+        if (!fullDayEvents[dayDate]!.contains(event)) {
+          fullDayEvents[dayDate]!.add(event);
+        }
+      }
+    }
+  }
+
   /// replace all day events
   /// if eventType is entered, replace juste day event type
   void replaceDayEvents(DateTime day, List<Event> events,

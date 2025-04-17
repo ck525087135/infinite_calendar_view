@@ -1,0 +1,1 @@
+ /Users/chenkai/infinite_calendar_view/example/.dart_tool/flutter_build/42fe2352c78545040d0b7f21d6308173/native_assets.yaml: 
