@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sticky_infinite_list/models/alignments.dart';
 import 'package:sticky_infinite_list/widget.dart';
-import 'dart:math' as math;
 
 import 'controller/events_controller.dart';
 import 'events/event.dart';
@@ -10,9 +9,8 @@ import 'events/side_events_arranger.dart';
 import 'extension.dart';
 import 'widgets/planner/day_widget.dart';
 import 'widgets/planner/horizontal_days_indicator_widget.dart';
-import 'widgets/planner/horizontal_full_day_events_widget.dart';
-import 'widgets/planner/vertical_time_indicator_widget.dart';
 import 'widgets/planner/overlay_full_day_events_layer.dart';
+import 'widgets/planner/vertical_time_indicator_widget.dart';
 
 class EventsPlanner extends StatefulWidget {
   const EventsPlanner({
@@ -230,14 +228,14 @@ class EventsPlannerState extends State<EventsPlanner> {
     var currentHourIndicatorColor =
         widget.currentHourIndicatorParam.currentHourIndicatorColor ??
             getDefaultHourIndicatorColor(context);
-    final timesIndicatorsWidth = widget.timesIndicatorsParam.timesIndicatorsWidth;
+    final timesIndicatorsWidth =
+        widget.timesIndicatorsParam.timesIndicatorsWidth;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         var width = constraints.maxWidth;
         dayWidth = (width - timesIndicatorsWidth) / widget.daysShowed;
         if (dayWidth <= 0) dayWidth = 50; // Fallback
-
         return Column(
           children: [
             // top days header
@@ -254,9 +252,10 @@ class EventsPlannerState extends State<EventsPlanner> {
                     // 1. Background Container (spans the full width)
                     Positioned.fill(
                       child: Container(
-                        decoration: widget.fullDayParam.fullDayEventsBarDecoration,
-                         // Optional: Add a background color if decoration doesn't include it
-                         // color: widget.fullDayParam.fullDayBackgroundColor ?? Colors.transparent,
+                        decoration:
+                            widget.fullDayParam.fullDayEventsBarDecoration,
+                        // Optional: Add a background color if decoration doesn't include it
+                        // color: widget.fullDayParam.fullDayBackgroundColor ?? Colors.transparent,
                       ),
                     ),
                     // 2. Left "All Day" Label (positioned absolutely)
@@ -265,7 +264,8 @@ class EventsPlannerState extends State<EventsPlanner> {
                       top: 0,
                       bottom: 0,
                       width: timesIndicatorsWidth,
-                      child: getFullDayEventsLeftLabel(), // Extracted Label Widget
+                      child:
+                          getFullDayEventsLeftLabel(), // Extracted Label Widget
                     ),
                     // 3. Overlay Layer for rendering continuous events
                     Positioned.fill(
@@ -273,13 +273,16 @@ class EventsPlannerState extends State<EventsPlanner> {
                       child: OverlayFullDayEventsLayer(
                         // Pass necessary parameters
                         controller: _controller,
-                        dayHorizontalController: mainHorizontalController, // Use main controller
+                        dayHorizontalController: mainHorizontalController,
+                        // Use main controller
                         initialDate: initialDate,
                         dayWidth: dayWidth,
                         daySeparationWidthPadding: daySeparationWidthPadding,
                         fullDayParam: widget.fullDayParam,
-                        maxPreviousDays: widget.maxPreviousDays, // Still needed for range calculation
-                        maxNextDays: widget.maxNextDays,     // Still needed for range calculation
+                        maxPreviousDays: widget.maxPreviousDays,
+                        // Still needed for range calculation
+                        maxNextDays: widget.maxNextDays,
+                        // Still needed for range calculation
                         barHeight: widget.fullDayParam.fullDayEventsBarHeight,
                       ),
                     ),
@@ -452,22 +455,21 @@ class EventsPlannerState extends State<EventsPlanner> {
 
   Widget getFullDayEventsLeftLabel() {
     return Container(
-       // Optional: Add decoration if needed, distinct from the main bar decoration
-       // decoration: BoxDecoration(border: Border(right: BorderSide(color: Colors.grey.shade300))), // Example separator
-       alignment: Alignment.center,
-       child: widget.fullDayParam.fullDayEventsBarLeftWidget ??
-           Center(
-             child: Text(
-               widget.fullDayParam.fullDayEventsBarLeftText,
-               style: TextStyle(
-                   color: Theme.of(context).colorScheme.outline,
-                   fontSize: 12),
-               textAlign: TextAlign.center,
-               maxLines: 2,
-               overflow: TextOverflow.ellipsis,
-             ),
-           ),
-     );
+      // Optional: Add decoration if needed, distinct from the main bar decoration
+      // decoration: BoxDecoration(border: Border(right: BorderSide(color: Colors.grey.shade300))), // Example separator
+      alignment: Alignment.center,
+      child: widget.fullDayParam.fullDayEventsBarLeftWidget ??
+          Center(
+            child: Text(
+              widget.fullDayParam.fullDayEventsBarLeftText,
+              style: TextStyle(
+                  color: Theme.of(context).colorScheme.outline, fontSize: 12),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+    );
   }
 
   void _onScaleStart(ScaleStartDetails details) {
@@ -554,6 +556,7 @@ class FullDayParam {
     this.fullDayEventBuilder,
     this.fullDayBackgroundColor,
     this.onEventTap,
+    this.onFullLocationTap,
   });
 
   static const defaultFullDayEventsBarLeftText = 'All day';
@@ -574,7 +577,8 @@ class FullDayParam {
   final Decoration? fullDayEventsBarDecoration;
 
   /// full day events builder
-  final Widget Function(List<FullDayEvent> events, double width, bool hasOverflow)?
+  final Widget Function(
+          List<FullDayEvent> events, double width, bool hasOverflow)?
       fullDayEventsBuilder;
 
   /// full day event builder
@@ -585,6 +589,8 @@ class FullDayParam {
 
   /// Callback when a full day event is tapped
   final void Function(FullDayEvent event)? onEventTap;
+
+  final void Function(DateTime dateTime)? onFullLocationTap;
 }
 
 class PinchToZoomParameters {

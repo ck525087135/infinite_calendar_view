@@ -129,7 +129,8 @@ class _OverlayFullDayEventsLayerState extends State<OverlayFullDayEventsLayer> {
       // Find available vertical level
       int level = 0;
       bool placed = false;
-      while (!placed) {  // Remove level limit to allow more events
+      while (!placed) {
+        // Remove level limit to allow more events
         if (level >= occupiedLevels.length) {
           occupiedLevels.add([]);
         }
@@ -144,9 +145,8 @@ class _OverlayFullDayEventsLayerState extends State<OverlayFullDayEventsLayer> {
         }
 
         if (!overlaps) {
-          occupiedLevels[level].add(
-            _OccupiedSpan(startIndex: startIndex, endIndex: endIndex)
-          );
+          occupiedLevels[level]
+              .add(_OccupiedSpan(startIndex: startIndex, endIndex: endIndex));
           placed = true;
         } else {
           level++;
@@ -192,68 +192,81 @@ class _OverlayFullDayEventsLayerState extends State<OverlayFullDayEventsLayer> {
       animation: widget.dayHorizontalController,
       builder: (context, child) {
         final bool hasClients = widget.dayHorizontalController.hasClients;
-        final double scrollOffset = hasClients ? widget.dayHorizontalController.offset : 0.0;
+        final double scrollOffset =
+            hasClients ? widget.dayHorizontalController.offset : 0.0;
 
         return ClipRect(
-          child: SingleChildScrollView(
-            controller: _verticalScrollController,
-            child: SizedBox(
-              height: _calculateTotalHeight(),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: _eventLayouts.map((layout) {
-                  if (widget.fullDayParam.fullDayEventsBuilder != null) {
-                    return Positioned(
-                      left: layout.left - scrollOffset,
-                      top: layout.top,
-                      width: layout.width,
-                      height: layout.height,
-                      child: GestureDetector(
-                        onTap: () {
-                          if (widget.fullDayParam.onEventTap != null) {
-                            widget.fullDayParam.onEventTap!(layout.event);
-                          }
-                        },
-                        child: widget.fullDayParam.fullDayEventsBuilder!.call(
-                          [layout.event],
-                          layout.width,
-                          false,
-                        ),
-                      ),
-                    );
-                  } else {
-                    return Positioned(
-                      left: layout.left - scrollOffset,
-                      top: layout.top,
-                      width: layout.width,
-                      height: layout.height,
-                      child: GestureDetector(
-                        onTap: () {
-                          if (widget.fullDayParam.onEventTap != null) {
-                            widget.fullDayParam.onEventTap!(layout.event);
-                          }
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: layout.event.color,
-                            borderRadius: BorderRadius.circular(3),
-                          ),
-                          alignment: Alignment.centerLeft,
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: Text(
-                            layout.event.title ?? '',
-                            style: TextStyle(color: layout.event.textColor, fontSize: 10),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                            textAlign: TextAlign.left,
+          child: GestureDetector(
+            child: SingleChildScrollView(
+              controller: _verticalScrollController,
+              child: SizedBox(
+                height: _calculateTotalHeight(),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: _eventLayouts.map((layout) {
+                    if (widget.fullDayParam.fullDayEventsBuilder != null) {
+                      return Positioned(
+                        left: layout.left - scrollOffset,
+                        top: layout.top,
+                        width: layout.width,
+                        height: layout.height,
+                        child: GestureDetector(
+                          onTap: () {
+                            if (widget.fullDayParam.onEventTap != null) {
+                              widget.fullDayParam.onEventTap!(layout.event);
+                            }
+                          },
+                          child: widget.fullDayParam.fullDayEventsBuilder!.call(
+                            [layout.event],
+                            layout.width,
+                            false,
                           ),
                         ),
-                      ),
-                    );
-                  }
-                }).toList(),
+                      );
+                    } else {
+                      return Positioned(
+                        left: layout.left - scrollOffset,
+                        top: layout.top,
+                        width: layout.width,
+                        height: layout.height,
+                        child: GestureDetector(
+                          onTap: () {
+                            if (widget.fullDayParam.onEventTap != null) {
+                              widget.fullDayParam.onEventTap!(layout.event);
+                            }
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: layout.event.color,
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 4.0),
+                            child: Text(
+                              layout.event.title ?? '',
+                              style: TextStyle(
+                                  color: layout.event.textColor, fontSize: 10),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              textAlign: TextAlign.left,
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+                  }).toList(),
+                ),
               ),
             ),
+            onTapUp: (TapUpDetails details) {
+              widget.fullDayParam.onFullLocationTap?.call(widget.initialDate
+                  .add(Duration(
+                      days: (widget.dayHorizontalController.offset /
+                                  widget.dayWidth)
+                              .toInt() +
+                          (details.localPosition.dx / widget.dayWidth)
+                              .toInt())));
+            },
           ),
         );
       },
@@ -262,7 +275,7 @@ class _OverlayFullDayEventsLayerState extends State<OverlayFullDayEventsLayer> {
 
   double _calculateTotalHeight() {
     if (_eventLayouts.isEmpty) return widget.barHeight;
-    
+
     double maxBottom = 0;
     for (var layout in _eventLayouts) {
       final bottom = layout.top + layout.height;
@@ -270,8 +283,9 @@ class _OverlayFullDayEventsLayerState extends State<OverlayFullDayEventsLayer> {
         maxBottom = bottom;
       }
     }
-    
-    return math.max(maxBottom + 4.0, widget.barHeight); // Add some padding at the bottom
+
+    return math.max(
+        maxBottom + 4.0, widget.barHeight); // Add some padding at the bottom
   }
 }
 
